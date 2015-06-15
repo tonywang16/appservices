@@ -1,6 +1,6 @@
 package com.paimeilv.config
 
-import com.paimeilv.basic.Area
+import com.paimeilv.basic.Circle
 import com.paimeilv.basic.Image
 
 /** 广告 **/
@@ -10,7 +10,7 @@ class Advert {
 	String link
 	Image image
 	
-	static belongsTo=[area:Area]
+	static belongsTo=[area:Circle]
 	
     static constraints = {
 		image nullable: true

@@ -21,6 +21,7 @@ class User implements Serializable {
 	Date dateCreated
 	Date lastUpdated
 	String loginBind = "0"
+	int type = 0
 
 	User(String username, String password) {
 		this()
@@ -63,7 +64,7 @@ class User implements Serializable {
 
 	static transients = ['springSecurityService']
 
-	static hasMany=[userOpenID:UserOpenID,image:Image,point:Point,pointTemp:PointTemp,message:Message,messageTo:MessageTo,praise:Praise,collect:Collect,comment:Comment]
+	static hasMany=[userOpenID:UserOpenID,image:Image,point:Place,pointTemp:PlaceTemp,message:Message,messageTo:MessageTo,praise:Praise,collect:Favorite,comment:Comment]
 	
 	static constraints = {
 		username blank: false, unique: true

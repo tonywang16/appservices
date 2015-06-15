@@ -1,7 +1,7 @@
 package com.paimeilv.basic
 
 /** 对趣处进行评分 ***/
-class Card {
+class Postcard {
 	
 	
 	/** 评分 */
@@ -10,8 +10,8 @@ class Card {
 	/** 评论 */
 	String comment
 	
-	static belongsTo=[point:Point,user:User]
-	static hasMany=[image:Image,praise:Praise,collect:Collect]
+	static belongsTo=[point:Place,user:User]
+	static hasMany=[image:Image,praise:Praise,collect:Favorite]
     static constraints = {
 		comment nullable: true
     }

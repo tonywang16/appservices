@@ -7,7 +7,7 @@ class Praise {
 
 	Date dateCreated
 	Date lastUpdated
-	static belongsTo=[user:User,card:Card]
+	static belongsTo=[user:User,card:Postcard]
     static constraints = {
     }
 }

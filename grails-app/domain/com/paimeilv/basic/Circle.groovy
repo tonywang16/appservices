@@ -4,7 +4,7 @@ import com.paimeilv.config.Advert
 
 
 /** 圈子（区域） ***/
-class Area {
+class Circle {
 
 	/** 名称 **/
 	String name
@@ -12,7 +12,7 @@ class Area {
 	String searchIndex
 	
 	static belongsTo=[city:City,advert:Advert]
-	static hasMany=[point:Point]
+	static hasMany=[point:Place]
 	
 	static mapping = {
 		version false

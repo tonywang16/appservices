@@ -13,8 +13,8 @@ class Image {
 	Date lastUpdated
 	RootFolder rootfolder
 	
-	static belongsTo=[pointImage:PointImage,user:User,card:Card]
-	static hasMany=[collect:Collect,comment:Comment]
+	static belongsTo=[pointImage:Composite,user:User,card:Postcard]
+	static hasMany=[collect:Favorite,comment:Comment]
     static constraints = {
 		rootfolder nullable: true
 		name nullable: true

@@ -6,7 +6,7 @@ class City {
 	String value
 	Date lastUpdated
 
-	static hasMany=[area:Area]
+	static hasMany=[area:Circle]
 	
 	static mapping = {
 		version false

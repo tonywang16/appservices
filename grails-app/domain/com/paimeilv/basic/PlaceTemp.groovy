@@ -1,22 +1,22 @@
 package com.paimeilv.basic
 
-/** 趣处 **/
-class Point {
+/** 临时趣处表 ****/
+class PlaceTemp {
 	
 	/** 名称 **/
 	String name
 	
-	/** 副标题 */
-	String instruction
-	
 	/** 地址 **/
 	String address
+	
+	/** 说明 */
+	String instruction
 	
 	/** 拍摄指数 */
 	Double  takeIndex
 	
 	/** 附近景点 */
-	String nearbySpot 
+	String nearbySpot
 	
 	/** 附近趣处 */
 	String nearbyPoint
@@ -27,13 +27,15 @@ class Point {
 	/** 适拍风格 */
 	String takeStyle
 	
-	static belongsTo=[area:Area,user:User]
+	/** 城市 ***/
+	String city
 	
-	static hasMany=[pointImage:PointImage,collect:Collect]
+	/** 圈子 ***/
+	String area
+	
+	static belongsTo=[user:User]
+	static hasMany=[pointImage:Composite]
 
-	static mapping = {
-		version false
-	}
     static constraints = {
 		address nullable: true
 		instruction nullable: true
@@ -42,5 +44,7 @@ class Point {
 		nearbyPoint nullable: true
 		dress nullable: true
 		takeStyle nullable: true
+		city nullable: true
+		area nullable: true
     }
 }
