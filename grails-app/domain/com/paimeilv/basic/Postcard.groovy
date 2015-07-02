@@ -10,8 +10,8 @@ class Postcard {
 	/** 评论 */
 	String comment
 	
-	static belongsTo=[point:Place,user:User]
-	static hasMany=[image:Image,praise:Praise,collect:Favorite]
+	static belongsTo=[place:Place,user:User]
+	static hasMany=[image:Image,praise:Praise,favorite:Favorite]
     static constraints = {
 		comment nullable: true
     }

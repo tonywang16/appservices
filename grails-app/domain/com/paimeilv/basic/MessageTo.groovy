@@ -11,8 +11,6 @@ class MessageTo {
 	
 	Message msg //消息信息
 	
-	User to //接收人
-	
 	String type //消息类型
 	
 	Date	dateCreated //消息发送时间

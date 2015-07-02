@@ -3,7 +3,6 @@ package com.paimeilv.basic
 /** 消息本体 **/
 class Message {
 	
-	User from
 	String subject
 	String content
 	Date lastUpdated

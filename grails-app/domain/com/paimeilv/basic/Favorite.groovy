@@ -8,10 +8,10 @@ class Favorite {
 	Date dateCreated
 	Date lastUpdated
 
-	static belongsTo=[user:User,card:Postcard,point:Place,image:Image,article:Article]
+	static belongsTo=[user:User,card:Postcard,place:Place,image:Image,article:Article]
     static constraints = {
 		card nullable: true
-		point nullable: true
+		place nullable: true
 		image nullable: true
 		article nullable: true
     }

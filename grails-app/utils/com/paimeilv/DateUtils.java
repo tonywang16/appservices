@@ -60,4 +60,14 @@ public class DateUtils {
 			
 			return map;
 	}
+	
+	public static boolean comparison2b(Date now,Date old){
+		long diff = now.getTime() - old.getTime();
+		
+		long diffDays = diff / (24 * 60 * 60 * 1000);
+		if(diffDays>=1){
+			return true;
+		}
+		return false;
+	}
 }

@@ -11,7 +11,6 @@ class UserProfile {
 	String gender = "M" //性别
 	String note//个人说明（个性签名）
 	
-	
 	String location//常驻地
 	
 	/* Automatic timestamping of GORM */
@@ -20,7 +19,7 @@ class UserProfile {
 	
 	String userPhotoUrl="" //头像
 	
-	static belongesTo=[user:User]
+	static belongsTo=[user:User]
 	
     static constraints = {
 		fullName(nullable: true)

@@ -33,8 +33,10 @@ class PlaceTemp {
 	/** 圈子 ***/
 	String area
 	
+	String verifyStr
+	
 	static belongsTo=[user:User]
-	static hasMany=[pointImage:Composite]
+	static hasMany=[composite:Composite]
 
     static constraints = {
 		address nullable: true
@@ -46,5 +48,6 @@ class PlaceTemp {
 		takeStyle nullable: true
 		city nullable: true
 		area nullable: true
+		verifyStr nullable: true
     }
 }

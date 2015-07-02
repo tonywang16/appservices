@@ -27,9 +27,9 @@ class Place {
 	/** 适拍风格 */
 	String takeStyle
 	
-	static belongsTo=[area:Circle,user:User]
+	static belongsTo=[circle:Circle,user:User]
 	
-	static hasMany=[pointImage:Composite,collect:Favorite]
+	static hasMany=[composite:Composite,favorite:Favorite]
 
 	static mapping = {
 		version false

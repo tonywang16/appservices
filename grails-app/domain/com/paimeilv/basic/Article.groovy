@@ -12,7 +12,7 @@ class Article {
 	/** 内容 **/
 	String content
 	
-	static hasMany=[collect:Favorite,comment:Comment]
+	static hasMany=[favorite:Favorite,comment:Comment]
 	static belongsTo=[user:User]
 	
     static constraints = {

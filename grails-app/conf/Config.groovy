@@ -31,6 +31,9 @@ grails.mime.types = [ // the first one is the default format
     xml:           ['text/xml', 'application/xml']
 ]
 
+
+grails.config.locations = ["classpath:config.properties","classpath:weixinConfig.properties"]
+
 // URL Mapping Cache Max Size, defaults to 5000
 //grails.urlmapping.cache.maxsize = 1000
 
@@ -120,9 +123,16 @@ grails.plugin.springsecurity.password.algorithm = 'SHA-256'
 grails.plugin.springsecurity.password.hash.iterations = 1
 grails.plugin.springsecurity.successHandler.alwaysUseDefault = false
 // Added by the Spring Security Core plugin:
-grails.plugin.springsecurity.userLookup.userDomainClassName = 'com.paimeilv.touch.basic.User'
-grails.plugin.springsecurity.userLookup.authorityJoinClassName = 'com.paimeilv.touch.basic.UserRole'
-grails.plugin.springsecurity.authority.className = 'com.paimeilv.touch.basic.Role'
+grails.plugin.springsecurity.userLookup.userDomainClassName = 'com.paimeilv.basic.User'
+grails.plugin.springsecurity.userLookup.authorityJoinClassName = 'com.paimeilv.basic.UserRole'
+grails.plugin.springsecurity.authority.className = 'com.paimeilv.basic.Role'
+
+grails.plugin.springsecurity.successHandler.defaultTargetUrl = '/login/ajaxSuccess'
+grails.plugin.springsecurity.apf.filterProcessesUrl = '/mlogin'
+
+grails.plugin.springsecurity.logout.filterProcessesUrl = '/mlogout'
+
+
 grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	'/**/**/**':['permitAll'],
 	'/user/*':                           ['IS_AUTHENTICATED_FULLY'],
@@ -132,3 +142,44 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	 '/**/conn/**': ['permitAll']
 ]
 
+grails {
+	mail {
+		host = "smtp.exmail.qq.com"
+		port = 465
+		username = "service@paimeilv.com"
+		password = "paimeilv2014"
+		props = ["mail.smtp.auth":"true",
+			   "mail.smtp.socketFactory.port":"465",
+			   "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
+			   "mail.smtp.socketFactory.fallback":"false"]
+	}
+ }
+
+grails.plugin.springsecurity.ui.identifyingCode.emailBody = '''\
+	<table  style="width:700px;text-align:left;padding:0px;margin:0px; margin:auto" align="center">
+	<tr >
+	  <td  style="text-align:left;padding:0px"><span><a href="http://www.paimeilv.com/" target="_blank">
+	  <img style="border=0px; width=200px; height=76px;"  http://7vzrp0.com1.z0.glb.clouddn.com/email_logo.png" alt="http://7vzrp0.com1.z0.glb.clouddn.com/email_logo.png"/></a>
+	  </span>
+	  </td>
+	</tr>
+	 
+	<tr style="height:60px;line-height:60px;font-size:14px">
+		<td >亲爱的&nbsp;<span style="color:#ff99cc">$user.fullname</span>,你好</td></tr>
+		<tr style="height:20px;line-height:20px;font-size:14px"><td ><span>欢迎入驻拍美旅！
+		</td></tr>
+		<tr style="height:20px;line-height:20px;font-size:14px"><td ><span>您的验证码如下， 愿您在拍美旅度过愉快的时光。</td></tr>
+		<tr style="height:20px;line-height:20px;font-size:14px;color:red"><td >$param</td></tr>
+	    <tr style="height:10px"><td></td></tr>
+		<tr  style="height:20px;line-height:20px;font-size:14px;" ><td>此外，旅拍菌特意为你准备了新手入门攻略：<a>[快来看看吧]</a></td></tr>
+    <tr style="height:10px"><td></td></tr>
+	<tr ><td ><hr style="border:1px solid grep;height:0px;" /></td></tr>
+	<tr style="height:22px;line-height:22px;font-size:14px;"><td  ><span
+  style='color:#C5C5C5'>如果你错误地收到了此电子邮件，你可以放心忽略此封邮件，无需进行任何操作</span></td></tr>
+	<tr><td><img style="border=0px; width=800px; height=100px;" src="http://paimeilv.qiniudn.com/foot_bg.jpg" alt="拍摄你的美好旅程"></td></tr>
+	<tr ><td  style="text-align:center;height:22px;line-height:22px;">我们的网址：<a href="www.paimeilv.com"  target="_blank" style="text-decoration:none"><span style="color:#ff99cc">www.paimeilv.com </span></a></td>
+</tr>
+</table>
+
+'''
+grails.plugin.springsecurity.ui.identifyingCode.emailSubject = '拍美旅验证码'
