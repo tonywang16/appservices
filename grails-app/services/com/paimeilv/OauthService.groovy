@@ -173,7 +173,7 @@ class OauthService {
 			return rm
 		}
 		UserToken ut = (UserToken)cm.get("userToken")
-		User user = ut.user
+		User user = ut?.user
 		uopen = new UserOpenID()
 		uopen.accessToken = bean.accessToken
 		uopen.openId = bean.openId

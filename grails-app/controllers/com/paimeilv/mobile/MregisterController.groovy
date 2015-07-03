@@ -6,6 +6,8 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.support.PropertiesLoaderUtils
 
 import com.paimeilv.CheckUtil
+import com.paimeilv.basic.User
+import com.paimeilv.basic.UserProfile;
 import com.paimeilv.bean.Request
 
 class MregisterController {
@@ -100,5 +102,30 @@ class MregisterController {
 			req=new Request(true,"重置成功","success",rm)
 		}
 		render req as JSON
+	}
+	
+	/** 验证唯一性 ***/
+	def isUnique(){
+		String type = params.get("type")
+		String username = params.get("username")
+		if(!username||"".equals(username.trim())||!type||"".equals(type.trim())){
+			Request req=new Request(false,"参数错误","error",null)
+			render req as JSON
+			return
+		}
+		
+		if("username".equals(type)){
+			User user = User.findByUsernameOrTelphoneOrEmail(username,username,username)
+			if(user) render new Request(false,"登录名已存在","error",null)
+			else render new Request(true,"","登录名可用",null)
+		}else if("fullname".equals(type)){
+			UserProfile up = UserProfile.findByFullName(username)
+			if(up) render new Request(false,"昵称已存在","error",null)
+			else render new Request(true,"","昵称可用",null)
+		}else{
+			render new Request(false,"请输入正确的验证唯一性类型参数（username or fullname）","error",null)
+		}
+		
+		
 	}
 }
