@@ -1,6 +1,6 @@
 package com.paimeilv.config
 
-import java.util.Date;
+import com.paimeilv.DateUtils
 
 class Captcha {
 	

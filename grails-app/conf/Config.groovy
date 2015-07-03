@@ -155,7 +155,14 @@ grails {
 	}
  }
 
-grails.plugin.springsecurity.ui.identifyingCode.emailBody = '''\
+grails.plugin.springsecurity.ui.register.emailFrom="service@paimeilv.com"
+grails.plugin.springsecurity.ui.register.defaultRoleNames = ['ROLE_USER']
+grails.plugin.springsecurity.ui.password.minLength	= 6
+grails.plugin.springsecurity.ui.password.maxLength = 64
+grails.plugin.springsecurity.ui.password.validationRegex = '[a-zA-Z0-9]{6,64}$'
+grails.plugin.springsecurity.useSecurityEventListener = true
+
+grails.plugin.springsecurity.ui.identifyingCode.emailBody  = '''\
 	<table  style="width:700px;text-align:left;padding:0px;margin:0px; margin:auto" align="center">
 	<tr >
 	  <td  style="text-align:left;padding:0px"><span><a href="http://www.paimeilv.com/" target="_blank">
@@ -165,7 +172,7 @@ grails.plugin.springsecurity.ui.identifyingCode.emailBody = '''\
 	</tr>
 	 
 	<tr style="height:60px;line-height:60px;font-size:14px">
-		<td >亲爱的&nbsp;<span style="color:#ff99cc">$user.fullname</span>,你好</td></tr>
+		<td >亲爱的&nbsp;<span style="color:#ff99cc">$username</span>,你好</td></tr>
 		<tr style="height:20px;line-height:20px;font-size:14px"><td ><span>欢迎入驻拍美旅！
 		</td></tr>
 		<tr style="height:20px;line-height:20px;font-size:14px"><td ><span>您的验证码如下， 愿您在拍美旅度过愉快的时光。</td></tr>

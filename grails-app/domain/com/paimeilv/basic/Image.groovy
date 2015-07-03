@@ -14,7 +14,7 @@ class Image {
 	RootFolder rootfolder
 	
 	static belongsTo=[composite:Composite,user:User,card:Postcard]
-	static hasMany=[favorite:Favorite,comment:Comment]
+	static hasMany=[favorite:Favorite,comment:Comment,praise:Praise]
     static constraints = {
 		rootfolder nullable: true
 		name nullable: true

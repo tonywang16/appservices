@@ -33,4 +33,31 @@ class UserTokenUtils {
 		}
 		return ut
 	}
+	
+	public static Map checkUserToken(String token){
+		
+		UserToken ut = UserToken.findByAccessToken(token)
+		Map map = new HashMap()
+		
+		if(!ut) {
+			map.put("result",false)
+			map.put("msg","令牌错误")
+			return map
+		}
+		
+		Date now = new Date()
+		Map dmap = DateUtils.comparison(now, ut.time)
+		Long dd = dmap.get("d"); //天数
+		Long hh = dmap.get("h");//小时
+		Long mm = dmap.get("m"); //分钟
+		Long ss = dmap.get("s"); //秒
+		if(dd<30){
+			map.put("result",true)
+			map.put("userToken", ut)
+		}else{
+			map.put("result",false)
+			map.put("msg","令牌失效")
+		}
+		return map
+	}
 }

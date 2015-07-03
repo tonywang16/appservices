@@ -9,8 +9,12 @@ import net.sf.json.JSONObject
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.support.PropertiesLoaderUtils
 
-import weibo4j.http.AccessToken
-
+import com.paimeilv.basic.Role
+import com.paimeilv.basic.User
+import com.paimeilv.basic.UserOpenID
+import com.paimeilv.basic.UserProfile
+import com.paimeilv.basic.UserRole
+import com.paimeilv.basic.UserToken
 import com.paimeilv.bean.AutorBean
 import com.paimeilv.config.WeixinAccessToken
 
@@ -27,27 +31,18 @@ class OauthService {
 		String appid = properties.getProperty("appid")
 		String secret = properties.getProperty("secret")
 		String userinfo = properties.getProperty("userinfo")
-		//String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wx098e21c5f5021b99&secret=f8ea18d9c0791eb7f33548c491b9d261&code="+code+"&grant_type=authorization_code"
-		//获取accessToken
-//		String sTotalString =ConnectUtils.sendGet(accessTokenUrl,"appid="+ appid +"&secret="+ secret +"&code=" + code+"&grant_type=authorization_code")
-//		JSONObject json = JSONObject.fromObject(sTotalString);
+		
 		String url = accessTokenUrl +"?appid="+ appid +"&secret="+ secret +"&code=" + code+"&grant_type=authorization_code"
-		//获取accessToken
-//		JSONObject json =getJson(url)
 		JSONObject json = ConnectUtils.doGetStr(url)
 		Map map = (Map)json
-//		Map map = reflect(json)
 		String accessToken= map.get("access_token");
 		String openId = map.get("openid");
 		int returnNum =0
 		if(accessToken&&openId){
 			
-//			String sTotalString1 =ConnectUtils.sendGet(userinfo,"access_token="+accessToken+"&openid="+openId+"&lang=zh_CN")
-//			json = JSONObject.fromObject(sTotalString1);
 			url = userinfo +"?access_token="+accessToken+"&openid="+openId+"&lang=zh_CN"
 			json = ConnectUtils.doGetStr(url)
 			map = (Map)json
-//			map = reflect(json)
 			
 			//获取用户信息
 			if("0".equals(map.get("sex"))){
@@ -57,7 +52,6 @@ class OauthService {
 			bean.openId=openId
 			bean.openType="weixin"
 			bean.username=map.get("nickname")
-//			bean.email = email
 			bean.photo = map.get("headimgurl")
 			bean.gender = map.get("sex")
 		}else{
@@ -66,6 +60,135 @@ class OauthService {
 		bean.state = returnNum
 		return bean
 	}
+	
+	/** 获取Oauth2协议的OpenID 与 AccessToken by微博 **/
+	public AutorBean  getOauth2ByWeibo(HttpServletRequest  request,String pcode){
+		String username
+		String userPhotoUrl
+		String gender
+		User user =null
+		String code =pcode
+		AutorBean bean = new AutorBean()
+		int returnNum =0
+		if(!code||"".equals(code)) {
+			returnNum=-1
+		}else{
+			weibo4j.Oauth oauth = new weibo4j.Oauth();
+			String tokenStr = oauth.getAccessTokenByCode(code).toString();
+			String[] str = tokenStr.split(","); //截取字符串，获得sccessToken和uid
+			String accessToken= null;
+			String uid = null;
+			long tokenExpireIn = 0L;
+			
+			weibo4j.Users um = new weibo4j.Users();
+			if (accessToken.equals("")) {
+				returnNum=-1
+			}else{
+			   // AccessToken token = oauth.getAccessTokenByCode(code);
+				accessToken =  str[0].split("=")[1];
+				String[] str1 = str[3].split("]");
+				uid = str1[0].split("=")[1];
+				//tokenExpireIn = oauth.getExpireIn();
+				um.client.setToken(accessToken);
+				weibo4j.model.User weiboInfo = um.showUserById(uid);
+				username = weiboInfo.getScreenName();
+				userPhotoUrl = weiboInfo.getProfileImageUrl();
+				gender = weiboInfo.getGender()
+				
+				bean.accessToken=accessToken
+				bean.openId=uid
+				bean.openType="weibo"
+				bean.username=username
+	//			bean.email = email
+				bean.photo = userPhotoUrl
+				bean.gender = gender
+			}
+		}
+		
+		bean.state = returnNum
+		//bean.openType=type
+		
+		UserOpenID up=UserOpenID.findWhere(openId:bean.openId,openType:bean.openType)
+		if(up) bean.isexist = 1  //如果已注册则为1
+		return bean
+	}
+	
+	
+	
+	def getOpenUser(AutorBean bean){
+		
+		UserOpenID uopen  = UserOpenID.findWhere(openId:bean.openId,openType:bean.openType)
+		User user =uopen?.user
+		if(user){
+			return user
+		}
+		
+		user =new User()
+		String u_name = findByUserName(bean.username)
+		user.setUsername(u_name)
+		user.setPassword(bean.openId)
+		user.setEnabled(true)
+		user.save(flush:true)
+		
+		uopen = new UserOpenID()
+		uopen.accessToken = bean.accessToken
+		uopen.openId = bean.openId
+		uopen.openType = bean.openType
+		uopen.openName = bean.username
+		uopen.openUrl = bean.photo
+
+		uopen.user = user
+		uopen.save(flush:true)
+		
+		UserProfile userp =user?.userProfile
+		if(!userp){
+			userp = new UserProfile()
+			userp.fullName=u_name
+			if("f".equals(bean.gender)) userp.gender = "W"
+			//userp.user = user
+			userp.userPhotoUrl = bean.photo
+			userp.save(flush:true)
+		}
+		user.userProfile =userp
+		user.save(flush:true)
+		
+		def guestRole = Role.findByAuthority("ROLE_USER")  //普通注册用户权限
+		UserRole.create(user, guestRole)
+		
+		return user
+	}
+	
+	/** 社交账号绑定 ***/
+	def bindUser(AutorBean bean,String accesstoken){
+		Map rm = new HashMap()
+		Map cm = UserTokenUtils.checkUserToken(accesstoken)
+		if(!cm.get("result")){
+			return cm
+		}
+		UserOpenID uopen  = UserOpenID.findWhere(openId:bean.openId,openType:bean.openType)
+		
+		if(uopen){
+			rm.put("result", false)
+			rm.put("msg", "已被绑定")
+			return rm
+		}
+		UserToken ut = (UserToken)cm.get("userToken")
+		User user = ut.user
+		uopen = new UserOpenID()
+		uopen.accessToken = bean.accessToken
+		uopen.openId = bean.openId
+		uopen.openType = bean.openType
+		uopen.openName = bean.username
+		uopen.openUrl = bean.photo
+		uopen.user = user
+		uopen.save(flush:true)
+		
+		rm.put("result", true)
+		rm.put("msg", "绑定成功")
+		return rm
+	}
+	
+	
 	
 	/** 获取accessToken **/
 	public String getAccessToken(){
@@ -85,8 +208,6 @@ class OauthService {
 		String appid = properties.getProperty("mp_appid")
 		String secret = properties.getProperty("mp_secret")
 		//获取accessToken
-//		String sTotalString =ConnectUtils.sendGet(accessTokenUrl,"grant_type=client_credential&appid="+appid+"&secret="+secret)
-//		JSONObject json = JSONObject.fromObject(sTotalString);
 		Map<String,String> map = new HashMap<String,String>();
 		
 		
@@ -96,7 +217,7 @@ class OauthService {
 		String token = map.get("access_token")
 		String expiresIn = map.get("expires_in")
 		
-		if(!accessToken) accessToken = new AccessToken()
+		if(!accessToken) accessToken = new WeixinAccessToken()
 		accessToken.token = token
 		accessToken.expiresIn = Long.valueOf(expiresIn)
 		accessToken.save(flush:true)
@@ -104,35 +225,6 @@ class OauthService {
 		return token
 	}
 	
-	public Map getJsConfig(String url){
-		if(url.lastIndexOf("#")!=-1){
-			url = url.substring(0,url.indexOf("#")-1)
-		}
-		Map resl = new HashMap()
-		String noncestr = CheckUtils.randomString(16)
-		String timestamp =  new Date().getTime()
-		String token = getAccessToken()
-		def properties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("weixinConfig.properties"))
-		String appid = properties.getProperty("mp_appid")
-		String ticketUrl = properties.getProperty("mp_ticket_get")
-		
-//		String resp =ConnectUtils.sendGet(ticketUrl,"access_token="+token+"&type=jsapi");
-//		JSONObject json = JSONObject.fromObject(resp);
-		
-		String ticketUrl_all = ticketUrl +"?access_token="+token+"&type=jsapi"
-		JSONObject json = ConnectUtils.doGetStr(ticketUrl_all)
-		Map map = (Map)json
-		resl.put("errcode", map.get("errcode"))
-		String ticket = map.get("ticket")
-		String signature = CheckUtils.getSignature4Ticket(timestamp, noncestr, ticket, url)
-		
-		resl.put("appId", appid)
-		resl.put("timestamp", timestamp)
-		resl.put("nonceStr", noncestr)
-		resl.put("signature", signature)
-		return resl
-		
-	}
 	
 	
 	public AutorBean getOauth2ByWeixin(String openID){
@@ -147,14 +239,8 @@ class OauthService {
 		
 		String token = getAccessToken()
 		if(token){
-//			String userinfoUrl = userinfo+"?access_token="+token+"&openid="+openID+"&lang=zh_CN"
-			//获取用户信息
-//			String sTotalString1 =ConnectUtils.sendGet(userinfo,"access_token="+token+"&openid="+openID+"&lang=zh_CN")
-//			
-//			JSONObject json = JSONObject.fromObject(sTotalString1);
 			
 			String url = userinfo +"?access_token="+token+"&openid="+openID+"&lang=zh_CN"
-//			String sTotalString1 =getJson(url)
 			JSONObject json = ConnectUtils.doGetStr(url)
 			map = (Map)json
 			
@@ -170,19 +256,6 @@ class OauthService {
 			bean.gender = map.get("sex")
 		}
 		return bean
-	}
-	
-	public boolean menuCreate(){
-		def properties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("weixinConfig.properties"))
-		String createUrl = properties.getProperty("mp_menu_create")//创建自定义菜单URL 
-		createUrl+="?access_token="+getAccessToken()
-		String jsonStr = "{\"button\":[ {	\"type\":\"view\",\"name\":\"联系我们\",\"url\":\"http://mp.weixin.qq.com/s?__biz=MjM5MjIxOTY0OQ==&mid=201088048&idx=1&sn=4ae3aa0f943c5369ee5ac12f3b51a0b0#rd\"},"+
-									"{	\"type\":\"view\",\"name\":\"微社区\",\"url\":\"http://m.wsq.qq.com/263238891\"}]}"
-		
-//		JSONObject json = JSONObject.fromObject(jsonStr);
-//		println json
-		JSONObject res = ConnectUtils.doPostStr(createUrl, jsonStr)
-		return res.toString()
 	}
 	
 	/** 获取微信授权地址**/
@@ -201,11 +274,24 @@ class OauthService {
 		return weixinurl
 	}
 	
-//	public static String getJson(String url) throws IOException, WeiboException{
-//		
-//		URL l_url = new URL(url);
-//		HttpURLConnection l_connection = (HttpURLConnection) l_url.openConnection();
-//		Response resp = new Response(l_connection);
-//		return resp.asString();
-//	}
+	
+	public String findByUserName(String username){
+		String name = toUserName()
+		
+		if(!username||"".equals(username)) return "拍美旅用户"+name
+		String uname = username.replaceAll("[^a-zA-Z_\u4e00-\u9fa5]", "")
+		if(User.findWhere(username:username)==null){
+			uname = username
+		}else{
+			
+			uname = username+name
+		}
+		return uname
+	}
+	
+	public String toUserName(){
+		long useraccount = (System.currentTimeMillis()%1000000);
+		String account = String.valueOf(useraccount)
+		return account;
+	}
 }

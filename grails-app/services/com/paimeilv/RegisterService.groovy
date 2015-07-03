@@ -85,9 +85,9 @@ class RegisterService {
 	 * @param equip 设备号
 	 * @return
 	 */
-	def getCaptcha(String telphone,String templateId,HttpServletRequest request,String codeMethod){
+	def getCaptcha(String username,String templateId,HttpServletRequest request,def config,String codeMethod){
 		
-		User user = User.findByUsernameOrTelphone(telphone,telphone)
+		User user = User.findByUsernameOrTelphoneOrEmail(username,username,username)
 		
 		Map rmap = new HashMap()
 		if(codeMethod == "register"){
@@ -108,48 +108,52 @@ class RegisterService {
 			n = (int)(Math.random()*1000000);
 		}
 		String code=n
-		Captcha c = Captcha.findByTelphone(telphone)
+		Captcha c = Captcha.findByTelphone(username)
 		
 		if(!c){
 			c = new Captcha()
 		}
-		c.telphone = telphone
+		c.telphone = username
 		c.code= code
 		c.save(flush:true)
 		
-		Map  map = smsService.templateSMS(telphone,code,templateId)
-		String result = map.get("resp").get("respCode")
 		Map m = new HashMap()
-		if("000000".equals(result)) m.put("code", code)
-		m.put("result", result)
 		
-		println("SMS Response content is: " + result);
-		
-		File file = new File(request.getSession().getServletContext().getRealPath("/log/register.txt"));
-		String now =(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime());
-		result = "\r\n"+now +" "+telphone+ ":" + result+"\r\n"
-		try {
-			if (!file.exists()){
-			file.createNewFile();
+		if(CheckUtil.checkTel(username)){
+			Map  map = smsService.templateSMS(username,code,templateId)
+			String result = map.get("resp").get("respCode")
+			
+//			if("000000".equals(result)) m.put("code", code)
+			m.put("result", result)
+			
+			println("SMS Response content is: " + result);
+			
+			File file = new File(request.getSession().getServletContext().getRealPath("/log/register.txt"));
+			String now =(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime());
+			result = "\r\n"+now +" "+username+ ":" + result+"\r\n"
+			try {
+				if (!file.exists()){
+				file.createNewFile();
+				}
+				FileWriter writer = new FileWriter(request.getSession().getServletContext().getRealPath("/log/register.txt"), true);
+				writer.write(result);
+				writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				println e.getMessage()
 			}
-			FileWriter writer = new FileWriter(request.getSession().getServletContext().getRealPath("/log/register.txt"), true);
-			writer.write(result);
-			writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			println e.getMessage()
+		}else{
+			m=getEmailCode(user,username,config)
 		}
 		
 		return m
 	}
 	
 	//邮箱验证码
-	def getEmailCode(String email,def config){
-		User user = User.findWhere(email:email)
-		User user1 = User.findWhere(username:email)
-		if(!user || !user1){
-			return "userNotExist"
-		}
+	def getEmailCode(User user,String email,config){
+		String username = email
+		if(user) username = user.fullname
+		
 		int n = 0 ;
 		while(n < 100000){
 			n = (int)(Math.random()*1000000);
@@ -165,19 +169,21 @@ class RegisterService {
 		c.save(flush:true)
 		String param = code
 		def conf = SpringSecurityUtils.securityConfig
-		//def config = ConfigurationHolder.config
-		//def config = grailsApplication.config
 		def body = config.grails.plugin.springsecurity.ui.identifyingCode.emailBody
 		if (body.contains('$')) {
-			body = evaluate(body, [user: user, param: param])
+			body = evaluate(body, [username:username, param: param])
 		}
 		mailService.sendMail {
 			to email
-			from config.grails.mail.username
+			from conf.ui.register.emailFrom
 			subject config.grails.plugin.springsecurity.ui.identifyingCode.emailSubject
 			html body.toString()
 		}
-		return param
+		
+		Map m = new HashMap()
+//		m.put("code", param)
+		m.put("result", "000000")
+		return m
 	}
 	
 	protected String evaluate(s, binding) {
@@ -187,18 +193,52 @@ class RegisterService {
 	//修改密码
 	def modifyPassword(Map map){
 		String username = map.username
-		String password = map.password
-		String writeCode = map.writeCode
-		String userCode = map.userCode
-		User user = User.findWhere(username:username)
-		if(!user){
-			return "userNotExist"//用户不存在
+		String newpsw = map.newpsw
+		String captcha = map.captcha
+		
+		Map  capmap = checkCaptcha(username,captcha)
+		Map m = new HashMap()
+		if(!capmap.get("result")){
+			m.put("error", capmap.get("msg"))
+			return m
 		}
-		 if(userCode != writeCode || !userCode.equals(writeCode)){
-			  return "codeError"//验证码错误
-		  }
-		 user.password = password
+		
+		User user = User.findByUsernameOrTelphoneOrEmail(username,username,username)
+		if(!user){
+			m.put("error", "用户不存在")
+			return m
+		}
+		
+		 user.password = newpsw
 		 user.save(flush:true)
-		 return "success"//修改密码成功
+		 
+		 m.put("success", "已重置")
+		 return m//修改密码成功
+	}
+	
+	def checkCaptcha(String username,String code){
+		Captcha cap = Captcha.findByTelphoneAndCode(username,code)
+		Map map = new HashMap()
+		
+		
+		if(!cap) {
+			map.put("result",false)
+			map.put("msg","验证码错误")
+			return map
+		}
+		
+		Date now = new Date()
+		Map dmap = DateUtils.comparison(now, cap.lastUpdated)
+		Long dd = dmap.get("d"); //天数
+		Long hh = dmap.get("h");//小时
+		Long mm = dmap.get("m"); //分钟
+		Long ss = dmap.get("s"); //秒
+		if(dd<1&&hh<1){
+			map.put("result",true)
+		}else{
+			map.put("result",false)
+			map.put("msg","验证码失效")
+		}
+		return map
 	}
 }
