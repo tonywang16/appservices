@@ -1,5 +1,7 @@
 package com.paimeilv.basic
 
+import com.paimeilv.config.RootFolder
+
 /** 趣处 **/
 class Place {
 	
@@ -27,6 +29,29 @@ class Place {
 	/** 适拍风格 */
 	String takeStyle
 	
+	/** 经度 ***/
+	String longitude
+	
+	/** 纬度 ***/
+	String latitude
+	
+	boolean isCover=false 
+	
+	/** 封面 ***/
+	public String getCover(){
+		if(!isCover){//使用默认头像
+			RootFolder rf =RootFolder.findByType("sys")
+			return rf?.mappingPath+"default-place-cover"
+		}else{
+			RootFolder rf =RootFolder.findByType("sys")
+			return rf?.mappingPath+id+"-default-place-cover"
+		}
+	}
+	
+	public String getDescribe(){
+		this.circle?.describe+","+this.name
+	}
+	
 	static belongsTo=[circle:Circle,user:User]
 	
 	static hasMany=[composite:Composite,favorite:Favorite]
@@ -42,5 +67,9 @@ class Place {
 		nearbyPoint nullable: true
 		dress nullable: true
 		takeStyle nullable: true
+		isCover nullable: true
+		
+		longitude nullable: true
+		latitude nullable: true
     }
 }

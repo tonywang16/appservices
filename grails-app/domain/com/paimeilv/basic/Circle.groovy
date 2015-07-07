@@ -11,8 +11,12 @@ class Circle {
 	
 	String searchIndex
 	
-	static belongsTo=[city:City,advert:Advert]
-	static hasMany=[point:Place]
+	public String getDescribe(){
+		this.city.value+","+this.name
+	}
+	
+	static belongsTo=[city:City]
+	static hasMany=[point:Place,advert:Advert]
 	
 	static mapping = {
 		version false

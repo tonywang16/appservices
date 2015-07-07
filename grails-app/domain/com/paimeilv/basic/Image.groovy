@@ -1,8 +1,9 @@
 package com.paimeilv.basic
 
-import java.util.Date;
+import java.text.SimpleDateFormat
 
-import com.paimeilv.config.RootFolder;
+import com.paimeilv.DateUtils
+import com.paimeilv.config.RootFolder
 
 /** 图片 *****/
 class Image {
@@ -13,7 +14,12 @@ class Image {
 	Date lastUpdated
 	RootFolder rootfolder
 	
-	static belongsTo=[composite:Composite,user:User,card:Postcard]
+	/** 发布设置 ***/
+	public String getSendtime(){
+		return DateUtils.getSendTime(lastUpdated)
+	}
+	
+	static belongsTo=[composite:Composite,user:User,card:Postcard,article:Article]
 	static hasMany=[favorite:Favorite,comment:Comment,praise:Praise]
     static constraints = {
 		rootfolder nullable: true
@@ -21,6 +27,7 @@ class Image {
 		card nullable: true
 		composite nullable: true
 		user nullable: true
+		article nullable: true
     }
 	
 	String getPathstr(){

@@ -11,6 +11,10 @@ class City {
 	static mapping = {
 		version false
 	}
+	
+	public String getDescribe(){
+		return value
+	}
 
 	static constraints = {
 		searchIndex nullable: true

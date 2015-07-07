@@ -2,6 +2,8 @@ package com.paimeilv.mobile
 
 import grails.converters.JSON
 
+import com.paimeilv.bean.Request
+
 class SnsController {
 
 	def snsService
@@ -41,11 +43,23 @@ class SnsController {
 	 
 	/** 反馈 ***/
 	def feedback(){
-		
+		//vaule=建议内容&accesstoken=298yd12dsa2gvv3
+		String value = params.get("value")
+		String accesstoken = params.get("accesstoken")
+		if("POST".equals(request.getMethod())){
+			render snsService.feedback(value,accesstoken) as JSON
+		} else{
+			render(new Request(false,"plase request POST Method ",null,null) as JSON)
+		}
 	}
 	
 	/** 广告位 ***/
 	def getAdvert(){
+		String cid = params.get("cid")
 		
+		Long fid = null
+		if(cid&&!"".equals(cid)) fid = Long.valueOf(cid)
+		
+		render snsService.getAdvert(fid) as JSON
 	}
 }

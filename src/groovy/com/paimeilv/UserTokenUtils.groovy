@@ -36,9 +36,14 @@ class UserTokenUtils {
 	
 	public static Map checkUserToken(String token){
 		
-		UserToken ut = UserToken.findByAccessToken(token)
 		Map map = new HashMap()
+		if(!token||"".equals(token.trim())) {
+			map.put("result",false)
+			map.put("msg","输入空值异常")
+			return map
+		}
 		
+		UserToken ut = UserToken.findByAccessToken(token)
 		if(!ut) {
 			map.put("result",false)
 			map.put("msg","令牌错误")
