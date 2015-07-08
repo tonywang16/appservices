@@ -9,9 +9,10 @@ class OperateController {
 	def operateService
 	/** 发现趣处 ***/
     def proposalPlace() {
-		def place = params.get("place")
-		String accesstoken = params.get("accesstoken")
+
 		if("POST".equals(request.getMethod())){
+			def place = params.get("place")
+			String accesstoken = params.get("accesstoken")
 			render operateService.proposalPlace(place,accesstoken) as JSON
 		} else{
 			render(new Request(false,"plase request POST Method ",null,null) as JSON)
@@ -21,10 +22,36 @@ class OperateController {
 	/** 趣处评分的添加与修改 **/
 	def saveOrUpdateCard(){
 		
+		if("POST".equals(request.getMethod())){
+			def card = params.get("card")
+			String accesstoken = params.get("accesstoken")
+			render operateService.saveOrUpdateCard(card,accesstoken) as JSON
+		} else{
+			render(new Request(false,"plase request POST Method ",null,null) as JSON)
+		}
+
 	}
 	/** 评论图片 ***/
 	def commImage(){
-		
+		if("POST".equals(request.getMethod())){
+			String imgId = params.get("imgId")
+			String content = params.get("content")
+			String accesstoken = params.get("accesstoken")
+			String  commId = params.get("commId")
+			
+			Integer imgid 
+			if(imgId&&!"".equals(imgId.trim())){
+				imgid = Integer.valueOf(imgId)
+			}
+			
+			Integer cid
+			if(commId&&!"".equals(commId.trim())){
+				cid = Integer.valueOf(commId)
+			}
+			render operateService.commImage(imgid,content,cid,accesstoken) as JSON
+		} else{
+			render(new Request(false,"plase request POST Method ",null,null) as JSON)
+		}
 	}
 	
 	/** 评论文章 ***/

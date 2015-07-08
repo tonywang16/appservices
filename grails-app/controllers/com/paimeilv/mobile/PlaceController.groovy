@@ -107,11 +107,65 @@ class PlaceController {
 	
 	/** 用户对趣处评分 详情***/
 	def getCard(){
-	
+		String cId = params.get("cId")
+		if(!cId||"".equals(cId.trim())){
+			Request req=new Request(false,"参数错误","error",null)
+			render req as JSON
+			return
+		}
+		try {
+			render placeService.getCard(Long.valueOf(cId)) as JSON
+		} catch (Exception e) {
+			Request req=new Request(false,e.getMessage(),"error",null)
+			render req as JSON
+		}
 	}
 	
 	/** 图片详情 ***/
 	def getImage(){
+		//imgId=1&accesstoken=298yd……
+		String imgId = params.get("imgId")
+		String accesstoken = params.get("accesstoken")
+		if(!imgId||"".equals(imgId.trim())){
+			Request req=new Request(false,"参数错误","error",null)
+			render req as JSON
+			return
+		}
+		try {
+			render placeService.getImage(Long.valueOf(imgId),accesstoken) as JSON
+		} catch (Exception e) {
+			Request req=new Request(false,e.getMessage(),"error",null)
+			render req as JSON
+		}
+	}
 	
+	/** 获取评论列表 ****/
+	def getCommentList(){
+		String imgId = params.get("imgId")
+		String type = params.get("type")
+		String articleId = params.get("articleId")
+		String pageno = params.get("pageno")
+		if(!type||"".equals(type.trim())){
+			Request req=new Request(false,"查询类型不能为空","error",null)
+			render req as JSON
+			return
+		}
+		if((!imgId||"".equals(imgId.trim()))&&(!articleId||"".equals(articleId.trim()))){
+			Request req=new Request(false,"参数错误","error",null)
+			render req as JSON
+			return
+		}
+		try {
+			Long imid 
+			if(imgId) imid =Long.valueOf(imgId)
+			
+			Long aid
+			if(articleId) aid =Long.valueOf(articleId)
+			render placeService.getCommentList(type,imid,aid,pageno) as JSON
+		} catch (Exception e) {
+			Request req=new Request(false,e.getMessage(),"error",null)
+			render req as JSON
+		}
+		
 	}
 }

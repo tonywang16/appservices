@@ -3,8 +3,10 @@ package com.paimeilv.place
 import grails.transaction.Transactional
 
 import com.paimeilv.UserTokenUtils
+import com.paimeilv.basic.Article
 import com.paimeilv.basic.Circle
 import com.paimeilv.basic.City
+import com.paimeilv.basic.Comment
 import com.paimeilv.basic.Image
 import com.paimeilv.basic.Place
 import com.paimeilv.basic.Postcard
@@ -13,8 +15,11 @@ import com.paimeilv.basic.UserToken
 import com.paimeilv.bean.Pageinate
 import com.paimeilv.bean.Request
 import com.paimeilv.json.bean.CardJson
+import com.paimeilv.json.bean.CommentJson
+import com.paimeilv.json.bean.ImageDetailsJson
 import com.paimeilv.json.bean.ImageJson
 import com.paimeilv.json.bean.PlaceJson
+import com.paimeilv.json.bean.UserCardJson
 
 @Transactional
 class PlaceService {
@@ -228,6 +233,78 @@ class PlaceService {
 			return req
 		}
 		page.result = cjlist
+		req=new Request(true,"","success",page)
+		return req
+	}
+	
+	/** 获取趣处评分详情 **/
+	def getCard(Long cid){
+		Request req
+		Postcard p = Postcard.get(cid)
+		if(!p){
+			req=new Request(false,"","没有数据",null)
+			return req
+		}
+		req=new Request(true,"","success",new UserCardJson(p))
+		return req
+	}
+	
+	/*** 获取图片的详情 ****/
+	def getImage(Long imgId,String accesstoken){
+		Request req
+		Image img = Image.get(imgId)
+		if(!img){
+			req=new Request(false,"没有数据","error",null)
+			return req
+		}
+		
+		/** 验证并获取登录用户 ***/
+		Map cm = UserTokenUtils.checkUserToken(accesstoken)
+		UserToken ut = (UserToken)cm.get("userToken")
+		User user = ut?.user
+		
+		req=new Request(true,"","success",new ImageDetailsJson(img,user))
+		return req
+	}
+	
+	/** 获取评论列表 ****/
+	def getCommentList(String type,Long imgId,Long articleId,String pageno){
+		Request req
+		Pageinate page = new Pageinate()
+		if(pageno&&!"".equals(pageno)) page.pagesNo = Integer.valueOf(pageno)
+		Image img 
+		Article article
+		List<Comment> commlist
+		List<CommentJson> commjsonlist = new ArrayList<CommentJson>()
+		if(imgId&&0!=imgId){
+			img= Image.get(imgId)
+			if(!imgId) {
+				req=new Request(false,"没有找到图片","error",null)
+				return req
+			}
+			commlist= Comment.findAllWhere(image:img,[max:page.pageSize,offset:page.rowStart])
+		}else if(articleId&&0!=articleId){
+			article = Article.get(articleId)
+			if(!article) {
+				req=new Request(false,"没有找到资讯文章","error",null)
+				return req
+			}
+			commlist= Comment.findAllWhere(article:article,[max:page.pageSize,offset:page.rowStart])
+		}else{
+			req=new Request(false,"imgId,articleId必须有一个有值","error",null)
+			return req
+		}
+		if(commlist&&commlist.size()>0){
+			for (c in commlist) {
+				CommentJson cj = new CommentJson(c)
+				commjsonlist.add(cj)
+			}
+		}else{
+			req=new Request(false,"没有数据","error",null)
+			return req
+		}
+		
+		page.result = commjsonlist
 		req=new Request(true,"","success",page)
 		return req
 	}

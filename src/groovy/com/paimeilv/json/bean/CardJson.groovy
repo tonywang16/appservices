@@ -6,7 +6,7 @@ import com.paimeilv.basic.Praise
 
 class CardJson {
 	
-	public CardJson(Postcard c,User u){
+	public CardJson(Postcard c,com.paimeilv.basic.User u){
 		if(!c) return 
 		this.cardId=c.id
 		this.autor = c.user.fullname

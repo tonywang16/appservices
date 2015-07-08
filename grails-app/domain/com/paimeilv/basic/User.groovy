@@ -46,7 +46,7 @@ class User implements Serializable {
 	/** 性别 ***/
 	public String getGender(){
 		if("W".equals(this.userProfile?.gender)) return "女"
-		if(!this.userProfile?.gender) return "男"
+		else return "男"
 	}
 	/** 常驻地 ***/
 	public String getLocation(){

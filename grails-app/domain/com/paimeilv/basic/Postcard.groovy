@@ -22,11 +22,6 @@ class Postcard {
 		return format.format(lastUpdated);
 	}
 	
-	public boolean getIsf(){
-		
-		
-	}
-	
 	static belongsTo=[place:Place,user:User]
 	static hasMany=[image:Image,praise:Praise,favorite:Favorite]
     static constraints = {

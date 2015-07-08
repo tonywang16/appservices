@@ -13,6 +13,7 @@ class ImageJson {
 		this.time = img.sendtime
 		this.favoNum = img.favorite?.size()?:0
 		this.comNum=img.comment?.size()?:0
+		
 	}
 	
 	Long imgId 
@@ -22,12 +23,10 @@ class ImageJson {
 	String autor
 	/** 发布者头像 **/
 	String autorPhoto
-	
 	/** 发布时间 **/
 	String time
 	/** 收藏数 ***/
 	Long favoNum
 	/** 评论数 ***/
 	Long comNum
-
 }
