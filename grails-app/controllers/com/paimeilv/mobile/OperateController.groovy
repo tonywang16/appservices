@@ -56,6 +56,24 @@ class OperateController {
 	
 	/** 评论文章 ***/
 	def commArticle(){
-		
+		if("POST".equals(request.getMethod())){
+			String aId = params.get("aId")
+			String content = params.get("content")
+			String accesstoken = params.get("accesstoken")
+			String  commId = params.get("commId")
+			
+			Integer aid
+			if(aId&&!"".equals(aId.trim())){
+				aid = Integer.valueOf(aId)
+			}
+			
+			Integer cid
+			if(commId&&!"".equals(commId.trim())){
+				cid = Integer.valueOf(commId)
+			}
+			render operateService.commArticle(aid,content,cid,accesstoken) as JSON
+		} else{
+			render(new Request(false,"plase request POST Method ",null,null) as JSON)
+		}
 	}
 }

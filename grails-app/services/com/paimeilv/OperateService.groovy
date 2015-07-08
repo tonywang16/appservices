@@ -2,6 +2,7 @@ package com.paimeilv
 
 import grails.transaction.Transactional
 
+import com.paimeilv.basic.Article
 import com.paimeilv.basic.Comment
 import com.paimeilv.basic.Composite
 import com.paimeilv.basic.Image
@@ -259,6 +260,56 @@ class OperateService {
 				req=new Request(false,"没找到要回复的评论","error",null)
 				return req
 			}
+			co.image=comm.image
+			co.parent = comm
+		}
+		co.save(flush:true)
+		
+		req=new Request(true,"","success",null)
+		return req
+	}
+	
+	
+	/** 评论资讯 ****/
+	def commArticle(Integer aId,String content,Integer commId,String accesstoken){
+		
+		Request req
+		if(!aId||!content||"".equals(content.trim())||!accesstoken||"".equals(accesstoken.trim())){
+			req=new Request(false,"参数错误","error",null)
+			return req
+		}
+		if(content.length()>250){
+			req=new Request(false,"评论字符不能超过250字","error",null)
+			return req
+		}
+		
+		Map cm = UserTokenUtils.checkUserToken(accesstoken)
+		if(!cm.get("result")){
+			req=new Request(cm.get("result"),cm.get("msg"),"error",null)
+			return req
+		}
+		
+		
+		Article article = Article.get(aId)
+		if(!article){
+			req=new Request(false,"没找到要评论的文章","error",null)
+			return req
+		}
+		
+		
+		UserToken ut = (UserToken)cm.get("userToken")
+		User user = ut?.user
+		Comment co = new Comment()
+		co.strText= content
+		co.user = user
+		co.article = article
+		if(commId){
+			Comment comm=Comment.get(commId)
+			if(!comm){
+				req=new Request(false,"没找到要回复的评论","error",null)
+				return req
+			}
+			co.article=comm.article
 			co.parent = comm
 		}
 		co.save(flush:true)

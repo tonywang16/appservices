@@ -24,7 +24,7 @@ class Article {
 		return DateUtils.getSendTime(lastUpdated)
 	}
 	
-	static hasMany=[favorite:Favorite,comment:Comment,image:Image]
+	static hasMany=[favorite:Favorite,praise:Praise,comment:Comment,image:Image]
 	static belongsTo=[user:User]
 	
     static constraints = {

@@ -61,10 +61,10 @@ public class DateUtils {
 			return hh+"小时前";
 		}else if(mm>0){//几分钟前
 			return mm+"分钟前";
-		}else if(ss>0){ //几秒前
+		}else if(ss>10){ //几秒前
 			return ss+"秒前";
 		}else{
-			return "现在";
+			return "刚刚";
 		}
 	}
 	

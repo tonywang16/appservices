@@ -79,7 +79,7 @@ class SearchService {
 		page.rowCount =Article.countByTitleLike("%${value}%")
 		if(alist&&alist.size()>0){
 			for (a in alist) {
-				com.paimeilv.json.bean.Article aj = new com.paimeilv.json.bean.Article(a)
+				com.paimeilv.json.bean.Article aj = new com.paimeilv.json.bean.Article(a,null)
 				ajsonlist.add(aj)
 			}
 		}else{
