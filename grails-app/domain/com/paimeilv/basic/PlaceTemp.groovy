@@ -35,6 +35,15 @@ class PlaceTemp {
 	
 	String verifyStr
 	
+	/** 封面 ***/
+	public String getCover(){
+		if(this?.composite&&this.composite.size()>0){
+			return this.composite.toArray()[0]?.image?.pathstr
+		}else{
+			return ""
+		}
+	}
+	
 	static belongsTo=[user:User]
 	static hasMany=[composite:Composite]
 

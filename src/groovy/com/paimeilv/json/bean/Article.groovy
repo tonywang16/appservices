@@ -43,7 +43,7 @@ class Article {
 	String autor
 	/** 发布时间 **/
 	String time
-	/***图片地址（多个可用”|”分割）**/
+	/*** 图片地址 **/
 	List<String> aImg 
 	/** 收藏数 ***/
 	Long favoNum

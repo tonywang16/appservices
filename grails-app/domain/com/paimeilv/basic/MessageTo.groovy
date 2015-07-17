@@ -27,5 +27,6 @@ class MessageTo {
 	boolean isread=false
 
     static constraints = {
+		type nullable: true
     }
 }

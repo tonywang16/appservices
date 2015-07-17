@@ -39,32 +39,75 @@ class OperateService {
 		String profile = place?.profile //趣处简介
 		String pimage = place?.pimage //趣处图片 多图以 "|"分割
 		
-		PlaceTemp pt = new PlaceTemp()
+		String pid = place?.pId
+		PlaceTemp pt
+		if(pid&&!"".equals(pid)){
+			pt = PlaceTemp.get(Long.valueOf(pid))
+		}
+		
+		if(!pt) pt = new PlaceTemp()
 		pt.name = pname
 		pt.address = paddress
 		pt.instruction = profile
 		pt.user = user
 		pt.save(flush:true)
 		String[] imgarray = pimage.split("\\|")
-		for (path in imgarray) {
-			String  a1 = path.split("//")[1]
-			String bucket = a1.substring(0,a1.indexOf("."))
-			String key = a1.substring(a1.indexOf("/")+1,a1.length())
-			String newkey = String.valueOf(System.currentTimeMillis())
-			if(qiNiuService.replace(bucket, QiNiuService.UPLOAD_BUCKET, key, newkey)){
-				RootFolder rootfolder = RootFolder.findByBucket(QiNiuService.UPLOAD_BUCKET)
-				Image img = new Image()
-				img.rootfolder = rootfolder
-				img.path = newkey
-				img.user = user
-				img.name = newkey
-				img.save(flush:true)
-				Composite c =new Composite()
-				c.image = img 
-				c.pointTemp = pt
-				c.save(flush:true)
-				img.composite = c
-				img.save(flush:true)
+		List<Map> keyList = getImgArray(imgarray)
+		List<Composite> comlist = Composite.findAllWhere(pointTemp:pt,user:user)
+		
+		if(comlist&&comlist.size()>0){
+			for(int i =0;i<comlist.size();i++){
+				
+				Composite composite = comlist.get(i)
+				Image img = composite.image
+				boolean isdel = true
+				for(int j =0;j<keyList.size();j++){
+					String key = keyList.get(j).get("key")
+					if(key.equals(img.path)){//已有图片修改
+						isdel = false
+						keyList.remove(j)
+						j--
+						break
+					}
+				}
+				if(isdel){
+					//删除操作
+					qiNiuService.del(img.path,img.rootfolder.bucket)
+					composite.delete(flush:true)
+					img.delete(flush:true)
+					comlist.remove(i)
+					i--
+				}
+			}
+		}
+		
+		if(keyList&&keyList.size()>0){
+			//新添加图片
+			for(int j =0;j<keyList.size();j++){
+				String key = keyList.get(j).get("key")
+				String bucket = keyList.get(j).get("bucket")
+				///获取根目录
+				RootFolder rf =RootFolder.findWhere(bucket:bucket)
+				if(!rf) {
+					rf =  new RootFolder(bucket:bucket)
+					rf.qiniuPath = "http://"+bucket+".qiniudn.com/"
+					rf.save(flush:true)
+				}
+				Composite composite =Composite.findWhere(pointTemp:pt)//图片添加
+				if(!composite){
+					Image img = new Image()
+					img.rootfolder = rf
+					img.path = key
+					img.user = user
+					img.name = key
+					img.save(flush:true)
+					composite =new Composite()
+					composite.image = img 
+					composite.pointTemp = pt
+					composite.save(flush:true)
+					img.composite = composite
+					img.save(flush:true)
+				}
 			}
 		}
 		req=new Request(true,"","success",null)

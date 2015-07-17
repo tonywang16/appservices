@@ -18,17 +18,16 @@ hibernate {
 environments {
     development {
         dataSource {
-			username = "dev"
-			password = "123"
-			dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
-//            url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
-			url = "jdbc:mysql://192.168.1.134:3306/pml_app?useUnicode=true&characterEncoding=utf-8"
+//			username = "dev"
+//			password = "123"
+//			dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
+//			url = "jdbc:mysql://192.168.1.134:3306/pml_app?useUnicode=true&characterEncoding=utf-8"
 			
 			/** 腾讯云数据库外网链接 ***/
-//			username = "cdb_outerroot"
-//			password = "paimeilv!@2014"
-//			dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
-//			url = "jdbc:mysql://55640a98df481.gz.cdb.myqcloud.com:16858/pml_vote?useUnicode=true&characterEncoding=utf-8"
+			username = "cdb_outerroot"
+			password = "paimeilv!@2014"
+			dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
+			url = "jdbc:mysql://55640a98df481.gz.cdb.myqcloud.com:16858/pml_app?useUnicode=true&characterEncoding=utf-8"
         }
     }
     test {
@@ -42,7 +41,12 @@ environments {
     production {
         dataSource {
             dbCreate = "update"
-			url = "jdbc:mysql://10.66.106.228:3306/pml_app?useUnicode=true&characterEncoding=utf-8"
+//			url = "jdbc:mysql://10.66.106.228:3306/pml_app?useUnicode=true&characterEncoding=utf-8"
+			
+			username = "dev"
+			password = "123"
+			dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
+			url = "jdbc:mysql://192.168.1.134:3306/pml_app?useUnicode=true&characterEncoding=utf-8"
             properties {
                // See http://grails.org/doc/latest/guide/conf.html#dataSource for documentation
                jmxEnabled = true
