@@ -110,7 +110,7 @@ class PlaceService {
 			plist =Place.findAllByNameLike("%${value}%",[max:page.pageSize,offset:page.rowStart])
 			page.rowCount =Place.countByNameLike("%${value}%")
 		}else{
-			plist =Place.findAll("from Place p where p.name like :name and c.circle = :circle",[name:"%${value}%",circle:cir],[max:page.pageSize,offset:page.rowStart])
+			plist =Place.findAll("from Place p where p.name like :name and p.circle = :circle and p.isSend=:isSend ",[name:"%${value}%",circle:cir,isSend:true],[max:page.pageSize,offset:page.rowStart])
 		}
 
 		List<com.paimeilv.json.bean.Place> rmlist = new ArrayList<com.paimeilv.json.bean.Place>()
@@ -160,34 +160,41 @@ class PlaceService {
 		User user
 		Place p
 		String hql = "select i,(select count(1) from Favorite f where f.image=i) as fnum from Image i where 1=1 "
+		
+		String counthql = "select count(1) from Image i where 1=1 "
+		String where = ""
 		if(pId&&0!=pId){
 			p = Place.get(pId)
 			if(!p) {
 				req=new Request(false,"","没有找到趣处",null)
 				return req
 			}
-			hql += " and i.card.place=:place "
 			
+			where +=   " and i.card.place=:place "
 		}else if(userId&&0!=userId){
 			user = User.get(userId)
 			if(!user) {
 				req=new Request(false,"","没有找到用户",null)
 				return req
 			}
-			hql += " and  i.user=:user "
+			where +=   " and  i.user=:user "
 		}else{
 			req=new Request(false,"","userId,pId必须有一个有值",null)
 			return req
 		}
 		
+		String orderhql = ""
 		if(orderby&&"hot".equals(orderby.toLowerCase().trim())){
-			hql+="  order by fnum  desc"
+			orderhql+="  order by fnum  desc"
 		}else{
-			hql+=" order by i.lastUpdated desc "
+			orderhql+=" order by i.lastUpdated desc "
 		}
 		def param = new HashMap()
 		if(p)param.put("place", p)
 		if(user)param.put("user", user)
+		
+		hql+=where+orderhql
+		counthql +=where
 		ilist =  Image.executeQuery(hql, param,[max:page.pageSize,offset:page.rowStart])
 		
 		if(ilist&&ilist.size()>0){
@@ -196,7 +203,9 @@ class PlaceService {
 				ijlist.add(ij)
 			}
 		}
+		ilist =  Image.executeQuery(counthql, param)
 		
+		page.rowCount = ilist.get(0)
 		page.result = ijlist
 		req=new Request(true,"","success",page)
 		return req

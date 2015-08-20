@@ -7,6 +7,8 @@ import com.paimeilv.bean.Request
 class OperateController {
 
 	def operateService
+	
+	def qiNiuService
 	/** 发现趣处 ***/
     def proposalPlace() {
 
@@ -75,5 +77,14 @@ class OperateController {
 		} else{
 			render(new Request(false,"plase request POST Method ",null,null) as JSON)
 		}
+	}
+	
+	/** 获取上传令牌 ***/
+	def getQiniuToenk={
+		String token = qiNiuService.uptoken(qiNiuService.TEMP_BUCKET)//上传令牌获取
+		Map map = new HashMap();
+		map.put("token", token)
+		map.put("tempBucket", qiNiuService.TEMP_BUCKET)
+		render(new Request(true,"","success",map) as JSON)
 	}
 }

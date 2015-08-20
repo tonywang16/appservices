@@ -1,5 +1,7 @@
 package com.paimeilv.basic
 
+import java.util.Date;
+
 import com.paimeilv.config.RootFolder
 
 /** 趣处 **/
@@ -35,7 +37,13 @@ class Place {
 	/** 纬度 ***/
 	String latitude
 	
+	String tel
+	
 	boolean isCover=false 
+	
+	boolean isSend=false
+	
+	Date lastUpdated
 	
 	/** 封面 ***/
 	public String getCover(){
@@ -71,5 +79,7 @@ class Place {
 		
 		longitude nullable: true
 		latitude nullable: true
+		
+		tel nullable: true
     }
 }

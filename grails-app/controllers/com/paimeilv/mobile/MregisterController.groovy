@@ -18,8 +18,7 @@ class MregisterController {
 		if("POST".equals(request.getMethod())){
 			Map map = registerService.register(params)
 			if(map.get("user")){
-				com.paimeilv.json.bean.User u = new com.paimeilv.json.bean.User(map.get("user"),null)
-				render(new Request(true,null,"注册成功",u) as JSON)
+				render(new Request(true,null,"注册成功",map.get("user")) as JSON)
 			}else{
 			 	render(new Request(false,"注册失败",null,map) as JSON)
 			}
@@ -116,16 +115,25 @@ class MregisterController {
 		
 		if("username".equals(type)){
 			User user = User.findByUsernameOrTelphoneOrEmail(username,username,username)
-			if(user) render new Request(false,"登录名已存在","error",null)
-			else render new Request(true,"","登录名可用",null)
-		}else if("fullname".equals(type)){
+			if(user) render new Request(false,"登录名已存在","error",null) as JSON
+			else render new Request(true,"","登录名可用",null) as JSON
+		}else if("fullname".equals(type)){ 
 			UserProfile up = UserProfile.findByFullName(username)
-			if(up) render new Request(false,"昵称已存在","error",null)
-			else render new Request(true,"","昵称可用",null)
+			if(up) render new Request(false,"昵称已存在","error",null) as JSON
+			else render new Request(true,"","昵称可用",null) as JSON
 		}else{
-			render new Request(false,"请输入正确的验证唯一性类型参数（username or fullname）","error",null)
+			render new Request(false,"请输入正确的验证唯一性类型参数（username or fullname）","error",null) as JSON
 		}
-		
-		
+	}
+	
+	/** 修改用户信息 ***/
+	def updateUser() { 
+		if("POST".equals(request.getMethod())){
+			def user = params.get("user")
+			String accesstoken = params.get("accesstoken")
+			render registerService.updateUser(user,accesstoken) as JSON
+		} else{
+			render(new Request(false,"plase request POST Method ",null,null) as JSON)
+		}
 	}
 }

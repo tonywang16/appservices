@@ -2,8 +2,10 @@ package com.paimeilv.mobile
 
 import grails.converters.JSON
 
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.support.PropertiesLoaderUtils
+
 import com.paimeilv.basic.User
-import com.paimeilv.basic.UserOpenID
 import com.paimeilv.bean.AutorBean
 import com.paimeilv.bean.Request
 
@@ -54,6 +56,27 @@ class OauthController {
 				render(new Request(m.get("result"),m.get("msg"),null,m) as JSON)
 			}
 		}
+	}
+	
+	def getSecret={
+		Map weixinmap = new HashMap()
+		def weixinProperties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("weixinConfig.properties"))
+		String weixinAppid = weixinProperties.getProperty("appid") //微信appid
+		String weixinSecret = weixinProperties.getProperty("secret")//微信secret
+		weixinmap.put("appid", weixinAppid)
+		weixinmap.put("secret", weixinSecret)
 		
+		def weiboProperties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("config.properties"))
+		String weiboAppid = weiboProperties.getProperty("client_ID") //微博appid
+		String weiboSecret = weiboProperties.getProperty("client_SERCRET")//微博secret
+		Map weibomap = new HashMap()
+		weibomap.put("appid", weiboAppid)
+		weibomap.put("secret", weiboSecret)
+		
+		Map map = new HashMap()
+		map.put("weixin", weixinmap)
+		map.put("weibo", weibomap)
+		
+		render(new Request(true,"success",null,map) as JSON)
 	}
 }

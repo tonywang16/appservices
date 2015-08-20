@@ -4,14 +4,14 @@ import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.transaction.Transactional
 import groovy.text.SimpleTemplateEngine
 
-import java.text.SimpleDateFormat
-
 import javax.servlet.http.HttpServletRequest
 
 import com.paimeilv.basic.Role
 import com.paimeilv.basic.User
 import com.paimeilv.basic.UserProfile
 import com.paimeilv.basic.UserRole
+import com.paimeilv.basic.UserToken
+import com.paimeilv.bean.Request
 import com.paimeilv.config.Captcha
 
 @Transactional
@@ -20,6 +20,8 @@ class RegisterService {
 	def smsService
 	
 	def mailService
+	
+	def qiNiuService
 
 	/****email,手机注册**/
     def register(Map map) {
@@ -27,6 +29,7 @@ class RegisterService {
 		String password = map.get("password")//密码
 		String captcha =  map.get("captcha")//验证码
 		String regType = map.get("regType")//注册类型
+		String equip = map.get("equip")
 		
 		Map rmap = new HashMap()
 		if(!username||"".equals(username.trim())||(!CheckUtil.checkTel(username)&&!CheckUtil.checkEmail(username))) {
@@ -34,49 +37,53 @@ class RegisterService {
 			return rmap
 		}
 		
+		if(!equip||"".equals(equip)){
+			rmap.put("error", "设备号不能为null")
+			return rmap
+		}
+		
 		User newuser
-		if(regType == "email"){//email注册
-			User user = User.findByEmailOrUsername(username,username)
-			if(user){
-				rmap.put("error", "用户已存在")
+		User user = User.findByEmailOrUsernameOrTelphone(username,username,username)
+		if(user){
+			rmap.put("error", "用户已存在")
+			return rmap
+		}
+		//TODO 验证码验证
+		Captcha c = Captcha.findByTelphoneAndCode(username,captcha)
+		if(c){
+			if(DateUtils.comparison2b(new Date(), c.lastUpdated)){
+				c?.delete()
+				rmap.put("error", "验证码已过期")
 				return rmap
-			}
+			   }
+		}else{
+				rmap.put("error", "验证码不存在")
+				return rmap
+		}
+		if(regType == "email"){//email注册
 			newuser = new User(username:username,password:password,email:username,enabled:true).save(flush:true)
-			
 			UserProfile up = new UserProfile()
-			up.user= user
+			up.user= newuser
 			up.save(flush:true)
+			
 		  }
 		  if(regType == "tel"){//手机注册
-			  User user = User.findByUsernameOrTelphone(username,username)
-			  if(user){
-				  rmap.put("error", "用户已存在")
-				  return rmap
-			  }
-			  
-			  //TODO 验证码验证
-			  Captcha c = Captcha.findByTelphone(username)
-			  if(c&&!DateUtils.comparison2b(new Date(), c.lastUpdated)){  
-//				    c?.delete()
-			  }else{
-			  		c?.delete()
-					  rmap.put("error", "验证码已过期")
-					  return rmap
-			  }
-			  
 			  newuser = new User(username:username,password:password,telphone:username,enabled:true).save(flush:true)
-			  
 			  UserProfile up = new UserProfile()
 			  up.user = newuser
 			  up.save(flush:true)
-			  println up
 		  }
 		  
 		  //给注册者权限
 		  def guestRole = Role.findByAuthority("ROLE_USER")//普通注册用户权限
 		  UserRole.create(newuser, guestRole)
 		  
-		  rmap.put("user", newuser)
+		  /*** 创建Token ****/
+		  UserTokenUtils.getUserToken(equip, newuser)
+		  
+		  com.paimeilv.json.bean.User u = new com.paimeilv.json.bean.User(newuser,equip)
+		  
+		  rmap.put("user", u)
 		  return rmap//注册成功
     }
 	
@@ -128,20 +135,20 @@ class RegisterService {
 			
 			println("SMS Response content is: " + result);
 			
-			File file = new File(request.getSession().getServletContext().getRealPath("/log/register.txt"));
-			String now =(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime());
-			result = "\r\n"+now +" "+username+ ":" + result+"\r\n"
-			try {
-				if (!file.exists()){
-				file.createNewFile();
-				}
-				FileWriter writer = new FileWriter(request.getSession().getServletContext().getRealPath("/log/register.txt"), true);
-				writer.write(result);
-				writer.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				println e.getMessage()
-			}
+//			File file = new File(request.getSession().getServletContext().getRealPath("/log/register.txt"));
+//			String now =(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime());
+//			result = "\r\n"+now +" "+username+ ":" + result+"\r\n"
+//			try {
+//				if (!file.exists()){
+//				file.createNewFile();
+//				}
+//				FileWriter writer = new FileWriter(request.getSession().getServletContext().getRealPath("/log/register.txt"), true);
+//				writer.write(result);
+//				writer.close();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				println e.getMessage()
+//			}
 		}else{
 			m=getEmailCode(user,username,config)
 		}
@@ -240,5 +247,62 @@ class RegisterService {
 			map.put("msg","验证码失效")
 		}
 		return map
+	}
+	
+	/*** 修改用户信息，包括修改密码与修改头像 ***/
+	def updateUser(Map userParams,String accesstoken){
+		Request req
+		if(!userParams||!userParams?.name||"".equals(userParams?.name?.trim())||!userParams?.gander||"".equals(userParams?.gander?.trim())||!accesstoken||"".equals(accesstoken.trim())){
+			req=new Request(false,"参数错误","error",null)
+			return req
+		}
+		if(!"M".equals(userParams?.gander?.trim())&&!"W".equals(userParams?.gander?.trim())){
+			req=new Request(false,"性别参数错误(M:男,W:女)","error",null)
+			return req
+		}
+		Map cm = UserTokenUtils.checkUserToken(accesstoken)
+		if(!cm.get("result")){
+			req=new Request(cm.get("result"),cm.get("msg"),"error",null)
+			return req
+		}
+		UserToken ut = (UserToken)cm.get("userToken")
+		User user = ut?.user
+		
+		String name = userParams?.name?.trim() //趣处名称
+		String photo =userParams?.photo?.trim() //趣处地址
+		String gander = userParams?.gander?.trim() //趣处简介
+		String location = userParams?.location?.trim() //趣处图片 多图以 "|"分割
+		String password = userParams?.password?.trim() //趣处名称
+		String restpsw = userParams?.restpsw?.trim() //趣处名称
+		
+		UserProfile userp = user.userProfile
+		if(!userp) {
+			userp = new UserProfile()
+			userp.user = user
+			userp.save(flush:true)
+		}
+		if(!name.equals(userp.fullName)){
+			UserProfile up = UserProfile.findByFullName(name)
+			if(up) return new Request(false,"昵称已存在","error",null)
+		}
+		if(photo&&!"".equals(photo)){//修改头像
+			String  a1 = photo.split("//")[1]
+			String bucket = a1.substring(0,a1.indexOf("."))
+			String key = a1.substring(a1.indexOf("/")+1,a1.length())
+			if(qiNiuService.replace(bucket, QiNiuService.UPLOAD_BUCKET, key, user.id+"-app-default-avatar")){
+				userp.userPhotoUrl = "1"
+				userp.save(flush:true)
+			}else{
+				return new Request(false,"修改头像失败","error",null)
+			}
+		}
+		
+		userp.fullName = name
+		userp.gender = gander
+		userp.location = location
+		userp.save(flush:true)
+		
+		req=new Request(true,"","success",null)
+		return req
 	}
 }

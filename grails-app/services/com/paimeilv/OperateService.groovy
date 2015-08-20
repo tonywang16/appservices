@@ -51,26 +51,37 @@ class OperateService {
 		pt.instruction = profile
 		pt.user = user
 		pt.save(flush:true)
-		String[] imgarray = pimage.split("\\|")
-		List<Map> keyList = getImgArray(imgarray)
-		List<Composite> comlist = Composite.findAllWhere(pointTemp:pt,user:user)
+		List<Map> keyList
+		if(pimage&&!"".equals(pimage)){///图片处理
+			String[] imgarray = pimage?.split("\\|")
+			keyList = getImgArray(imgarray)
+		}
+		List<Composite> comlist = Composite.findAllWhere(pointTemp:pt)
 		
 		if(comlist&&comlist.size()>0){
 			for(int i =0;i<comlist.size();i++){
-				
 				Composite composite = comlist.get(i)
 				Image img = composite.image
 				boolean isdel = true
-				for(int j =0;j<keyList.size();j++){
-					String key = keyList.get(j).get("key")
-					if(key.equals(img.path)){//已有图片修改
-						isdel = false
-						keyList.remove(j)
-						j--
-						break
+				if(keyList&&keyList.size()>0){
+					for(int j =0;j<keyList.size();j++){
+						String key = keyList.get(j).get("key")
+						if(key.equals(img.path)){//已有图片修改
+							isdel = false
+							keyList.remove(j)
+							j--
+							break
+						}
 					}
-				}
-				if(isdel){
+					if(isdel){
+						//删除操作
+						qiNiuService.del(img.path,img.rootfolder.bucket)
+						composite.delete(flush:true)
+						img.delete(flush:true)
+						comlist.remove(i)
+						i--
+					}
+				}else{
 					//删除操作
 					qiNiuService.del(img.path,img.rootfolder.bucket)
 					composite.delete(flush:true)
@@ -78,6 +89,7 @@ class OperateService {
 					comlist.remove(i)
 					i--
 				}
+				
 			}
 		}
 		
@@ -218,7 +230,9 @@ class OperateService {
 			for(int i=0;i<imgPath.length;i++){
 				String path = imgPath[i]
 				if(path&&!"null".equals(path)){
-					String  a1 = path.split("//")[1]
+					String[] array = path.split("//")
+					String  a1 = path.split("//")[0]
+					if(array.length>1) a1 = path.split("//")[1]
 					String bucket = a1.substring(0,a1.indexOf("."))
 					String key = a1.substring(a1.indexOf("/")+1,a1.length())
 					

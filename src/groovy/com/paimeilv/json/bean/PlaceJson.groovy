@@ -1,8 +1,10 @@
 package com.paimeilv.json.bean
 
 import com.paimeilv.basic.Composite
+import com.paimeilv.config.Advert
 
 class PlaceJson {
+	
 	public PlaceJson(com.paimeilv.basic.Place p){
 		if(!p) return
 		this.pid=p.id
@@ -21,7 +23,8 @@ class PlaceJson {
 		this.nearbyPoint=p.nearbyPoint
 		this.dress=p.dress
 		this.takeStyle=p.takeStyle
-		
+		this.tel = p.tel
+		this.circle = p.circle.name
 		imglist= new ArrayList<Map>()
 		Iterator i = p.composite.iterator()
 		while (i.hasNext()) {
@@ -30,6 +33,15 @@ class PlaceJson {
 			map.put("words", c.value)
 			map.put("imgpath", c.image.pathstr)
 			imglist.add(map)
+		}
+		
+		List<Advert> alist = Advert.findAllWhere(area:p.circle,[max:5, offset:0])
+		this.advertlist = new ArrayList<AdvertJson>()
+		if(alist&&alist.size()>0){
+			for (a in alist) {
+				AdvertJson aj = new AdvertJson(a)
+				advertlist.add(aj)
+			}
 		}
 	}
 	
@@ -64,4 +76,11 @@ class PlaceJson {
 	
 	/** 图片及描述集合 ****/
 	List<Map> imglist
+	
+	/** 广告集合 ****/
+	List<AdvertJson> advertlist
+	/** 联系电话 ****/
+	String tel 
+	
+	String circle
 }

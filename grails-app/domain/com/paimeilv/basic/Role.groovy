@@ -5,10 +5,17 @@ class Role implements Serializable {
 	private static final long serialVersionUID = 1
 
 	String authority
+	String value
 
 	Role(String authority) {
 		this()
 		this.authority = authority
+	}
+	
+	Role(String authority,String value) {
+		this()
+		this.authority = authority
+		this.value = value
 	}
 
 	@Override
@@ -28,6 +35,7 @@ class Role implements Serializable {
 
 	static constraints = {
 		authority blank: false, unique: true
+		value nullable: true
 	}
 
 	static mapping = {

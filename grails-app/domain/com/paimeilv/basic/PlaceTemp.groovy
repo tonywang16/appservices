@@ -35,6 +35,8 @@ class PlaceTemp {
 	
 	String verifyStr
 	
+	String tel
+	
 	/** 封面 ***/
 	public String getCover(){
 		if(this?.composite&&this.composite.size()>0){
@@ -58,5 +60,6 @@ class PlaceTemp {
 		city nullable: true
 		area nullable: true
 		verifyStr nullable: true
+		tel nullable: true
     }
 }
