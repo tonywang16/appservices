@@ -62,7 +62,7 @@ class Place {
 	
 	static belongsTo=[circle:Circle,user:User]
 	
-	static hasMany=[composite:Composite,favorite:Favorite]
+	static hasMany=[composite:Composite,favorite:Favorite,postcard:Postcard]
 
 	static mapping = {
 		version false

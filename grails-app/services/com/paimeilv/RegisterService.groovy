@@ -64,7 +64,10 @@ class RegisterService {
 			newuser = new User(username:username,password:password,email:username,enabled:true).save(flush:true)
 			UserProfile up = new UserProfile()
 			up.user= newuser
+			
 			up.save(flush:true)
+			newuser.userProfile =up
+			newuser.save(flush:true)
 			
 		  }
 		  if(regType == "tel"){//手机注册
@@ -72,6 +75,8 @@ class RegisterService {
 			  UserProfile up = new UserProfile()
 			  up.user = newuser
 			  up.save(flush:true)
+			  newuser.userProfile =up
+			  newuser.save(flush:true)
 		  }
 		  
 		  //给注册者权限
@@ -280,6 +285,9 @@ class RegisterService {
 			userp = new UserProfile()
 			userp.user = user
 			userp.save(flush:true)
+			
+			user.userProfile =userp
+			user.save(flush:true)
 		}
 		if(!name.equals(userp.fullName)){
 			UserProfile up = UserProfile.findByFullName(name)

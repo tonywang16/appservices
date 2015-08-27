@@ -1,6 +1,7 @@
 package com.paimeilv.basic
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import com.paimeilv.DateUtils
 
@@ -16,15 +17,22 @@ class Postcard {
 	
 	Date	lastUpdated
 	
+	Date time
+	
 	/** 发送时间设置 ***/
 	public String getSendtime(){
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		return format.format(lastUpdated);
+		if(time){
+			return format.format(time);
+		}else{
+			return format.format(lastUpdated);
+		}
 	}
 	
 	static belongsTo=[place:Place,user:User]
 	static hasMany=[image:Image,praise:Praise,favorite:Favorite]
     static constraints = {
+		time nullable: true
 		comment nullable: true
     }
 }

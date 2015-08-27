@@ -164,6 +164,7 @@ class OperateService {
 		pc.place=place
 		pc.user=user
 		pc.comment = comment
+		pc.time = new Date()
 		pc.score = s
 		pc.save(flush:true)
 		

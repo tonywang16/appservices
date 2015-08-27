@@ -12,7 +12,7 @@ class Article {
 		this.aid = a.id
 		this.title = a.title
 		this.autor = a.user.fullname
-		
+		this.content = a.content
 		
 		if(a.image){
 			aImg = new ArrayList<String>()
@@ -43,6 +43,8 @@ class Article {
 	String autor
 	/** 发布时间 **/
 	String time
+	/** 文章内容 ***/
+	String content
 	/*** 图片地址 **/
 	List<String> aImg 
 	/** 收藏数 ***/

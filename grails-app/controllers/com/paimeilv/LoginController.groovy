@@ -29,6 +29,7 @@ import org.springframework.security.web.WebAttributes
 
 import com.paimeilv.basic.User
 import com.paimeilv.bean.Request
+import com.paimeilv.config.Log;
 import com.paimeilv.filters.DisUsernamePasswordAuthenticationFilter
 
 
@@ -153,6 +154,10 @@ class LoginController {
 		User user = User.get(springSecurityService.principal.id)
 		user.loginBind="0"//登录方式重置
 		user.save(flush:true)
+		
+		Log loginLog = new Log()
+		loginLog.value = user.fullname+"("+user.username+")"+"登录"
+		loginLog.save(flush:true)
 		
 		String equip = session[DisUsernamePasswordAuthenticationFilter.SPRING_SECURITY_FORM_LOGINID_KEY]
 		com.paimeilv.json.bean.User u = new com.paimeilv.json.bean.User(user,equip)

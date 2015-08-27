@@ -30,7 +30,16 @@ class User implements Serializable {
 	public String getPhoto(){
 		if(!this.userProfile?.userPhotoUrl||"".equals( this.userProfile?.userPhotoUrl)){//使用默认头像
 			RootFolder rf =RootFolder.findByType("sys")
-			return rf?.mappingPath+"app-default-avatar"
+			Random random = new Random();
+			Integer rnum = random.nextInt(50)+1
+			UserProfile up = this.userProfile
+			String photo = rf?.mappingPath+"app-default-avatar-"+rnum
+			if(up){
+				up?.userPhotoUrl = photo
+				up.save(flush:true)
+			}
+			return photo
+			
 		}else if("1".equals( this.userProfile?.userPhotoUrl)){
 			RootFolder rf =RootFolder.findByType("sys")
 			return rf?.mappingPath+id+"-app-default-avatar"
